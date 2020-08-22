@@ -1,0 +1,182 @@
+swagger: "2.0"
+info:
+  description: "URL Shortening Service"
+  version: "1.0.0"
+  title: "l.ziz.cx URL Shortening"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "l.ziz.cx"
+basePath: "/"
+tags:
+- name: "url"
+  description: "Everything about the URLs"
+schemes:
+- "https"
+paths:
+  /url:
+    get:
+      tags:
+      - "url"
+      summary: "Get the list of URLs already configured"
+      operationId: "getUrls"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/URLStatsLists"
+        "405":
+          description: "Invalid input"
+      security:
+      - shortener_auth:
+        - "read:url"
+    post:
+      tags:
+      - "url"
+      summary: "Add a new URL to the store"
+      description: ""
+      operationId: "addUrl"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "URL Object that needs to be added to the store"
+        required: true
+        schema:
+          $ref: "#/definitions/URL"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/URLStats"
+        "405":
+          description: "Invalid input"
+      security:
+      - shortener_auth:
+        - "write:url"
+  /url/{urlId}:
+    get:
+      tags:
+        - "url"
+      summary: "Get the statistics for a URL"
+      operationId: "getUrlStats"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "urlId"
+        required: true
+        type: "string"
+        description: "The ID of the url (e.g. mdgyhe)"
+      responses:
+        "200":
+          description: "URL stats obtained"
+          schema:
+            $ref: "#/definitions/URLStats"
+        "404":
+          description: "URL not found"
+      security:
+      - shortener_auth:
+        - "read:url"
+    delete:
+      tags:
+      - "url"
+      summary: "Delete a URL"
+      description: ""
+      operationId: "deleteURL"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "urlId"
+        required: true
+        type: "string"
+        description: "The ID of the url (e.g. mdgyhe)"
+      responses:
+        "200":
+          description: "URL deleted"
+        "404":
+          description: "URL not found"
+      security:
+      - shortener_auth:
+        - "delete:url"
+    
+    
+securityDefinitions:
+  shortener_auth:
+    type: "oauth2"
+    authorizationUrl: "https://l.ziz.cx/oauth/dialog"
+    flow: "implicit"
+    scopes:
+      write:url: "add new URLs"
+      read:url: "read URL stats"
+      delete:url: "delete a URL from the store"
+  api_key:
+    type: "apiKey"
+    name: "api_key"
+    in: "header"
+definitions:
+  URL:
+    type: "object"
+    properties:
+      url:
+        type: "string"
+        description: "A URL"
+        example: "https://www.google.com"
+  URLStats:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+        description: "Unique ID of the URL"
+        example: "mdgyhe"
+      url:
+        type: "string"
+        description: "The original URL"
+        example: "https://www.google.com"
+      shortenedUrl:
+        type: "string"
+        description: "The shortened URL"
+        example: "https://l.ziz.cx/mdgyhe"
+      created:
+        type: "string"
+        format: "date-time"
+        description: "When the URL was added"
+        example: "2020-01-01T01:01:01.000Z"
+      lastAccessed:
+        type: "string"
+        format: "date-time"
+        description: "When the URL was last accessed"
+        example: "2020-01-01T01:02:01.000Z"
+      accessCount:
+        type: "integer"
+        description: "Number of times the URL has been accessed"
+        example: 10
+  URLStatsLists:
+    type: "object"
+    properties:
+      count:
+        type: "integer"
+        description: "Number of URLs"
+        example: 1
+      urls:
+        type: "array"
+        items:
+          $ref: "#/definitions/URLStats"
+  ApiResponse:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+      type:
+        type: "string"
+      message:
+        type: "string"
