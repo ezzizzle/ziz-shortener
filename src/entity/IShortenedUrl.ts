@@ -3,7 +3,7 @@ interface IShortenedUrl {
   original: string;
   short: string;
   created: Date;
-  lastAccessed: Date | undefined;
+  lastAccessed: Date;
 }
 
 export default IShortenedUrl;

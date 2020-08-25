@@ -3,6 +3,8 @@ import { getRepository } from 'typeorm';
 
 import { URLStats, urlStatsResponseBuilder } from './urlstats';
 import ShortenedUrl from './entity/ShortenedUrl';
+import URLSequence from './entity/URLSequence';
+import generateUrlId from './generateUrlId';
 
 export const rootHandler = (_req: Request, res: Response): Response => res.send('API is working 👋');
 
@@ -48,20 +50,18 @@ export const urlStatsHandler = async (req: Request, res: Response): Promise<void
 export const createUrlHandler = async (req: Request, res: Response): Promise<void> => {
   const { body } = req;
 
-  const urlRepository = getRepository(ShortenedUrl);
   // TODO: Create a unique ID
-  const newID = 'bla';
+  const urlSequence = await getRepository(URLSequence).save({});
+  const newID = generateUrlId(urlSequence.id);
 
   const newUrl = {
     id: newID,
     original: body.url,
-    short: `https://l.ziz.cx/${newID}`,
+    short: `${process.env.BASE_URL}/${newID}`,
   };
 
-  const shortenedUrl = await urlRepository.save(newUrl);
-  const results = await getRepository(ShortenedUrl).save(shortenedUrl);
-
-  res.json(results);
+  const shortenedUrl = await getRepository(ShortenedUrl).save(newUrl);
+  res.json(shortenedUrl);
 };
 
 export const deleteUrlHandler = async (req: Request, res: Response): Promise<void> => {

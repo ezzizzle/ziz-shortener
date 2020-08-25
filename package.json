@@ -17,7 +17,11 @@
     "shorten"
   ],
   "author": "Ezzizzle",
-  "license": "ISC",
+  "license": "MIT",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/ezzizzle/ziz-shortener"
+  },
   "devDependencies": {
     "@types/express": "^4.17.7",
     "@types/jest": "^26.0.10",

@@ -7,6 +7,7 @@ import 'reflect-metadata';
 
 import ShortenedUrl from './entity/ShortenedUrl';
 import URLLogEntry from './entity/URLLogEntry';
+import URLSequence from './entity/URLSequence';
 import {
   rootHandler,
   urlStatsHandler,
@@ -14,6 +15,16 @@ import {
   createUrlHandler,
   getShortenedUrl,
 } from './handlers';
+
+if (process.env.BASE_URL == null || !/http(s)?:/.test(process.env.BASE_URL)) {
+  throw new Error('BASE_URL must be set and have a value of http(s)?://s.d.com');
+}
+if (process.env.BASE_URL.endsWith('/')) {
+  process.env.BASE_URL = process.env.BASE_URL.slice(0, -1);
+}
+
+// Ensure dates in the database are stored in UTC
+process.env.TZ = 'UTC';
 
 const ormConfig: ConnectionOptions = {
   type: 'postgres',
@@ -27,10 +38,11 @@ const ormConfig: ConnectionOptions = {
   entities: [
     ShortenedUrl,
     URLLogEntry,
+    URLSequence,
   ],
 };
 
-createConnection(ormConfig).then((connection) => {
+createConnection(ormConfig).then((_) => {
   const swaggerDocument = YAML.load(path.join(__dirname, './swagger.yml'));
 
   const app = express();
