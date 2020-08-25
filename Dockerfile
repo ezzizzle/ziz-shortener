@@ -4,11 +4,9 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 COPY tsconfig.json .
-COPY jest.config.js .
 COPY src ./src
 
-RUN npm install && npm run test && npm run build
-
+RUN npm install && npm run build
 RUN npm ci --production
 
 FROM node:14.8-alpine

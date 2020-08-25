@@ -26,7 +26,7 @@ export default class ShortenedUrl implements IShortenedUrl {
   created!: Date;
 
   @UpdateDateColumn()
-  lastAccessed: Date | undefined;
+  lastAccessed!: Date;
 
   @OneToMany('URLLogEntry', 'url', {
     onDelete: 'CASCADE',
