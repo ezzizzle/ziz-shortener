@@ -4,7 +4,7 @@ import { getRepository } from 'typeorm';
 import { URLStats, urlStatsResponseBuilder } from './urlstats';
 import ShortenedUrl from './entity/ShortenedUrl';
 import URLSequence from './entity/URLSequence';
-import generateUrlId from './generateUrlId';
+import { generateUrlId, urlIdToNumber } from './urlIds';
 
 export const rootHandler = (_req: Request, res: Response): Response => res.send('API is working 👋');
 
