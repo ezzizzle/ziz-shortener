@@ -43,20 +43,19 @@ const ormConfig: ConnectionOptions = {
 };
 
 createConnection(ormConfig).then((_) => {
-  const swaggerDocument = YAML.load(path.join(__dirname, './swagger.yml'));
-
   const app = express();
   app.use(express.json());
   const port = process.env.PORT || '8000';
+
+  // Swagger docs
+  const swaggerDocument = YAML.load(path.join(__dirname, './swagger.yml'));
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
   app.get('/', rootHandler);
   app.get('/:urlId', getShortenedUrl);
   app.post('/url', createUrlHandler);
   app.get('/url/:urlId', urlStatsHandler);
   app.delete('/url/:urlId', deleteUrlHandler);
-
-  // Swagger docs
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
   app.listen(port, (err) => {
     if (err) return console.error(err);

@@ -11,6 +11,11 @@ test('API is up', async () => {
   expect(response.status).toEqual(200);
 });
 
+test('Swagger definition is being served', async () => {
+  const response = await fetch(`${API}/api-docs`, { method: 'GET' });
+  expect(response.status).toEqual(200);
+});
+
 test('Shortened URL does not exist', async () => {
   const response = await fetch(`${API}/blablabla`, { method: 'GET' });
   expect(response.status).toEqual(404);
