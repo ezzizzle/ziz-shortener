@@ -42,7 +42,7 @@ const ormConfig: ConnectionOptions = {
   ],
 };
 
-createConnection(ormConfig).then((_) => {
+createConnection(ormConfig).then(() => {
   const app = express();
   app.use(express.json());
   const port = process.env.PORT || '8000';
@@ -58,7 +58,6 @@ createConnection(ormConfig).then((_) => {
   app.delete('/url/:urlId', deleteUrlHandler);
 
   app.listen(port, (err) => {
-    if (err) return console.error(err);
-    return console.log(`Server is listening on ${port}`);
+    if (err) throw new Error(err);
   });
 });

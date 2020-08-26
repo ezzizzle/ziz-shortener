@@ -59,20 +59,36 @@ test('Can create a shortened URL', async () => {
   expect(shortResponse.url).toBe(body.url);
 });
 
-// test('Can delete a URL', async () => {
-//   const body = { url: 'https://www.google.com/' };
+test('Can delete a URL', async () => {
+  const body = { url: 'https://www.google.com/' };
 
-//   const response = await fetch(`${API}/url`, { method: 'POST', body: JSON.stringify(body) });
-//   expect(response.ok).toBeTruthy();
+  const response = await fetch(`${API}/url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  expect(response.ok).toBeTruthy();
 
-//   const shortenedUrl: IShortenedUrl = await response.json();
-//   const deleteResponse = await fetch(`${API}/url/${shortenedUrl.id}`, { method: 'DELETE' });
-//   expect(deleteResponse.ok).toBeTruthy();
+  const response2 = await fetch(`${API}/url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  expect(response.ok).toBeTruthy();
 
-//   // Verify we get a 404 for the URL
-//   const statsResponse = await fetch(`${API}/url/${shortenedUrl.id}`);
-//   expect(statsResponse.status).toBe(404);
+  const shortenedUrl: IShortenedUrl = await response.json();
+  const shortenedUrl2: IShortenedUrl = await response2.json();
+  const deleteResponse = await fetch(`${API}/url/${shortenedUrl.id}`, { method: 'DELETE' });
+  expect(deleteResponse.ok).toBeTruthy();
 
-//   const redirectResponse = await fetch(`${shortenedUrl.short}`);
-//   expect(redirectResponse.status).toBe(404);
-// });
+  // Verify we get a 404 for the URL
+  const statsResponse = await fetch(`${API}/url/${shortenedUrl.id}`);
+  expect(statsResponse.status).toBe(404);
+
+  const redirectResponse = await fetch(`${shortenedUrl.short}`);
+  expect(redirectResponse.status).toBe(404);
+
+  // Verify the other URL still works
+  const statsResponse2 = await fetch(`${API}/url/${shortenedUrl2.id}`);
+  expect(statsResponse2.ok).toBeTruthy();
+});

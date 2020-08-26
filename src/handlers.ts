@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 
-import { URLStats, urlStatsResponseBuilder } from './urlstats';
 import ShortenedUrl from './entity/ShortenedUrl';
 import URLSequence from './entity/URLSequence';
-import { generateUrlId, urlIdToNumber } from './urlIds';
+import { generateUrlId } from './urlIds';
 
 export const rootHandler = (_req: Request, res: Response): Response => res.send('API is working 👋');
 
@@ -24,27 +23,17 @@ export const getShortenedUrl = async (req: Request, res: Response): Promise<void
   res.redirect(shortenedUrl.original);
 };
 
-export const getStatsForUrl = async (urlId: string): Promise<URLStats> => {
-  // TODO: Get the stats from the DB
-  const urlStats: URLStats = {
-    id: urlId,
-    url: 'https://www.google.com.au',
-    shortenedUrl: 'https://l.ziz.cx/bhdfer',
-    created: new Date(),
-    lastAccessed: new Date(),
-    accessCount: 2,
-  };
-  return urlStats;
-};
-
 export const urlStatsHandler = async (req: Request, res: Response): Promise<void> => {
   const { params } = req;
   const { urlId } = params;
-  const urlStats = await getStatsForUrl(urlId);
 
-  const response = urlStatsResponseBuilder(urlStats);
+  const dbResponse = await getRepository(ShortenedUrl).findOne(urlId);
+  if (dbResponse === undefined) {
+    res.status(404).json({ error: `No URL for ID: ${urlId}` });
+    return;
+  }
 
-  res.json(response);
+  res.json(dbResponse);
 };
 
 export const createUrlHandler = async (req: Request, res: Response): Promise<void> => {
@@ -68,7 +57,14 @@ export const deleteUrlHandler = async (req: Request, res: Response): Promise<voi
   const { params } = req;
   const { urlId } = params;
 
-  // TODO: Delete URL from DB
-
-  res.sendStatus(200);
+  try {
+    await getRepository(ShortenedUrl)
+      .createQueryBuilder()
+      .delete()
+      .where('id = :id', { id: urlId })
+      .execute();
+    res.sendStatus(200);
+  } catch (err) {
+    res.status(404).json({ error: err });
+  }
 };
