@@ -26,6 +26,11 @@ if (process.env.BASE_URL.endsWith('/')) {
 // Ensure dates in the database are stored in UTC
 process.env.TZ = 'UTC';
 
+const sleep = (ms: number) => {
+  const timeout = new Promise((resolve) => setTimeout(resolve, ms));
+  return timeout;
+};
+
 const ormConfig: ConnectionOptions = {
   type: 'postgres',
   host: process.env.DB_HOST,
@@ -35,6 +40,9 @@ const ormConfig: ConnectionOptions = {
   database: process.env.DB_NAME,
   synchronize: true,
   logging: false,
+  extra: {
+    connectionTimeoutMillis: 5000,
+  },
   entities: [
     ShortenedUrl,
     URLLogEntry,
@@ -42,7 +50,36 @@ const ormConfig: ConnectionOptions = {
   ],
 };
 
-createConnection(ormConfig).then(() => {
+const connectToDb = async () => {
+  try {
+    await createConnection(ormConfig);
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
+const run = async (maxRetries: number) => {
+  let retryCount = 0;
+  console.log('RUNNING');
+
+  while (retryCount < maxRetries) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await connectToDb();
+      break;
+    } catch (err) {
+      console.error(`Error connecting to DB ${err}`);
+      retryCount += 1;
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(2000);
+    }
+  }
+
+  if (retryCount >= maxRetries) {
+    console.error(`Failed to connect to DB after ${retryCount} attempts`);
+    process.exit(-1);
+  }
+
   const app = express();
   app.use(express.json());
   const port = process.env.PORT || '8000';
@@ -58,6 +95,18 @@ createConnection(ormConfig).then(() => {
   app.delete('/url/:urlId', deleteUrlHandler);
 
   app.listen(port, (err) => {
-    if (err) throw new Error(err);
+    if (err) {
+      console.error(err);
+      process.exit(-1);
+    }
+    console.log(`Server running on ${process.env.BASE_URL}`);
   });
-});
+};
+
+const maxRetries = 5;
+
+try {
+  run(maxRetries);
+} catch (err) {
+  throw new Error(err);
+}
