@@ -4,6 +4,11 @@ import IShortenedUrl from '../entity/IShortenedUrl';
 
 dotenv.config();
 
+const sleep = (ms: number) => {
+  const timeout = new Promise((resolve) => setTimeout(resolve, ms));
+  return timeout;
+};
+
 const API = process.env.APP_URL;
 
 test('API is up', async () => {
@@ -58,6 +63,33 @@ test('Can create a shortened URL', async () => {
   expect(shortResponse.redirected).toBe(true);
   expect(shortResponse.url).toBe(body.url);
 });
+
+test('ShortenedUrl.lastAccessedTime is updated on request', async () => {
+  const body = { url: 'https://www.google.com/' };
+
+  const response = await fetch(`${API}/url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  const shortenedUrl: IShortenedUrl = await response.json();
+  shortenedUrl.created = new Date(shortenedUrl.created);
+  shortenedUrl.lastAccessed = new Date(shortenedUrl.lastAccessed);
+
+  // Access the URL
+  await sleep(1000);
+  await fetch(shortenedUrl.short);
+
+  // Verify the last accessed time is updated
+  const shortResponse = await fetch(`${API}/url/${shortenedUrl.id}`);
+  const shortResponseUrl: IShortenedUrl = await shortResponse.json();
+  shortResponseUrl.created = new Date(shortenedUrl.created);
+  shortResponseUrl.lastAccessed = new Date(shortenedUrl.lastAccessed);
+  expect(shortResponseUrl.created).toEqual(shortenedUrl.created);
+  expect(shortResponseUrl.lastAccessed.getTime())
+    .toBeGreaterThan(shortenedUrl.lastAccessed.getTime());
+})
 
 test('Can delete a URL', async () => {
   const body = { url: 'https://www.google.com/' };
