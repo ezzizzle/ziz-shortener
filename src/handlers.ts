@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
-import { getRepository } from 'typeorm';
 
 import ShortenedUrl from './entity/ShortenedUrl';
-import URLSequence from './entity/URLSequence';
-import { generateUrlId } from './urlIds';
+import { URLNotFoundException } from './entity/Errors';
 
 export const rootHandler = (_req: Request, res: Response): Response => res.send('API is working 👋');
 
@@ -11,12 +9,15 @@ export const getShortenedUrl = async (req: Request, res: Response): Promise<void
   const { params } = req;
   const { urlId } = params;
 
-  const urlRepository = getRepository(ShortenedUrl);
-
-  const shortenedUrl = await urlRepository.findOne(urlId);
-
-  if (shortenedUrl === undefined) {
-    res.sendStatus(404);
+  let shortenedUrl: ShortenedUrl;
+  try {
+    shortenedUrl = await ShortenedUrl.getForId(urlId);
+  } catch (err) {
+    if (err instanceof URLNotFoundException) {
+      res.status(404).json({ error: `No record for ID: ${urlId}` });
+      return;
+    }
+    res.status(500).json({ error: 'Could not get record from DB' });
     return;
   }
 
@@ -27,30 +28,31 @@ export const urlStatsHandler = async (req: Request, res: Response): Promise<void
   const { params } = req;
   const { urlId } = params;
 
-  const dbResponse = await getRepository(ShortenedUrl).findOne(urlId);
-  if (dbResponse === undefined) {
-    res.status(404).json({ error: `No URL for ID: ${urlId}` });
+  let shortenedUrl: ShortenedUrl;
+  try {
+    shortenedUrl = await ShortenedUrl.getForId(urlId);
+  } catch (err) {
+    if (err instanceof URLNotFoundException) {
+      res.status(404).json({ error: `No record for ID: ${urlId}` });
+      return;
+    }
+    res.status(500).json({ error: 'Could not get record from DB' });
     return;
   }
 
-  res.json(dbResponse);
+  res.json(shortenedUrl);
 };
 
 export const createUrlHandler = async (req: Request, res: Response): Promise<void> => {
   const { body } = req;
+  const { url } = body;
 
-  // TODO: Create a unique ID
-  const urlSequence = await getRepository(URLSequence).save({});
-  const newID = generateUrlId(urlSequence.id);
-
-  const newUrl = {
-    id: newID,
-    original: body.url,
-    short: `${process.env.BASE_URL}/${newID}`,
-  };
-
-  const shortenedUrl = await getRepository(ShortenedUrl).save(newUrl);
-  res.json(shortenedUrl);
+  try {
+    const shortenedUrl = await ShortenedUrl.create(url);
+    res.json({ ...shortenedUrl });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not save URL' });
+  }
 };
 
 export const deleteUrlHandler = async (req: Request, res: Response): Promise<void> => {
@@ -58,11 +60,7 @@ export const deleteUrlHandler = async (req: Request, res: Response): Promise<voi
   const { urlId } = params;
 
   try {
-    await getRepository(ShortenedUrl)
-      .createQueryBuilder()
-      .delete()
-      .where('id = :id', { id: urlId })
-      .execute();
+    await ShortenedUrl.delete(urlId);
     res.sendStatus(200);
   } catch (err) {
     res.status(404).json({ error: err });
