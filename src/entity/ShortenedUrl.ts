@@ -30,11 +30,8 @@ export default class ShortenedUrl implements IShortenedUrl {
   @UpdateDateColumn()
   lastAccessed!: Date;
 
-  @OneToMany('URLLogEntry', 'url', {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'urlId' })
-  logEntries?: IURLLogEntry[];
+  @Column({ default: 0 })
+  accessCount!: number;
 
   short!: string;
 
@@ -42,6 +39,10 @@ export default class ShortenedUrl implements IShortenedUrl {
   @AfterInsert()
   getShort(): void {
     this.short = `${process.env.BASE_URL}/${this.id}`;
+  }
+
+  async save(): Promise<void> {
+    await getRepository(ShortenedUrl).save(this);
   }
 
   static async getForId(urlId: string): Promise<ShortenedUrl> {

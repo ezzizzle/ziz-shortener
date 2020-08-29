@@ -80,16 +80,19 @@ test('ShortenedUrl.lastAccessedTime is updated on request', async () => {
   // Access the URL
   await sleep(1000);
   await fetch(shortenedUrl.short);
+  await sleep(1000);
 
   // Verify the last accessed time is updated
   const shortResponse = await fetch(`${API}/url/${shortenedUrl.id}`);
   const shortResponseUrl: IShortenedUrl = await shortResponse.json();
-  shortResponseUrl.created = new Date(shortenedUrl.created);
-  shortResponseUrl.lastAccessed = new Date(shortenedUrl.lastAccessed);
+  shortResponseUrl.created = new Date(shortResponseUrl.created);
+  shortResponseUrl.lastAccessed = new Date(shortResponseUrl.lastAccessed);
+
   expect(shortResponseUrl.created).toEqual(shortenedUrl.created);
+  expect(shortResponseUrl.accessCount).toEqual(1);
   expect(shortResponseUrl.lastAccessed.getTime())
-    .toBeGreaterThan(shortenedUrl.lastAccessed.getTime());
-})
+    .toBeGreaterThan(shortenedUrl.created.getTime());
+});
 
 test('Can delete a URL', async () => {
   const body = { url: 'https://www.google.com/' };

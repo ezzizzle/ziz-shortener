@@ -22,6 +22,8 @@ export const getShortenedUrl = async (req: Request, res: Response): Promise<void
   }
 
   res.redirect(shortenedUrl.original);
+  shortenedUrl.accessCount += 1;
+  shortenedUrl.save();
 };
 
 export const urlStatsHandler = async (req: Request, res: Response): Promise<void> => {
