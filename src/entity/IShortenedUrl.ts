@@ -4,6 +4,7 @@ interface IShortenedUrl {
   short: string;
   created: Date;
   lastAccessed: Date;
+  accessCount: number;
 }
 
 export default IShortenedUrl;
