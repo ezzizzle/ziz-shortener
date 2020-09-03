@@ -112,7 +112,7 @@ paths:
 securityDefinitions:
   shortener_auth:
     type: "oauth2"
-    authorizationUrl: "https://l.ziz.cx/oauth2"
+    authorizationUrl: "https://l.ziz.cx/oauth2/start"
     flow: "implicit"
     scopes:
       write:url: "add new URLs"
