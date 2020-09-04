@@ -14,6 +14,7 @@ import {
   deleteUrlHandler,
   createUrlHandler,
   getShortenedUrl,
+  tokenHandler,
 } from './handlers';
 
 if (process.env.BASE_URL == null || !/http(s)?:/.test(process.env.BASE_URL)) {
@@ -92,6 +93,7 @@ const run = async (maxRetries: number) => {
   app.get('/:urlId', getShortenedUrl);
   app.post('/url', createUrlHandler);
   app.get('/url/:urlId', urlStatsHandler);
+  app.get('/api/token', tokenHandler);
   app.delete('/url/:urlId', deleteUrlHandler);
 
   app.listen(port, (err) => {
