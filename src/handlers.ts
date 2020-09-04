@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import ShortenedUrl from './entity/ShortenedUrl';
 import { URLNotFoundException } from './entity/Errors';
 
+const bearerRegex = new RegExp('^Bearer (.*)');
+
 export const rootHandler = (_req: Request, res: Response): Response => res.send('API is working 👋');
 
 export const getShortenedUrl = async (req: Request, res: Response): Promise<void> => {
@@ -66,5 +68,26 @@ export const deleteUrlHandler = async (req: Request, res: Response): Promise<voi
     res.sendStatus(200);
   } catch (err) {
     res.status(404).json({ error: err });
+  }
+};
+
+export const tokenHandler = async (req: Request, res: Response): Promise<void> => {
+  if (!req.headers.authorization) {
+    res.status(404).json({ error: 'No token found' });
+    return;
+  }
+
+  const headerComponents = req.headers.authorization.match(bearerRegex);
+
+  if (headerComponents === null) {
+    res.status(404).json({ error: 'Could not get token from Authorization header' });
+    return;
+  }
+
+  try {
+    const token = headerComponents[1];
+    res.json({ token });
+  } catch {
+    res.status(404).json({ error: 'Could not goet token from Authorization header' });
   }
 };
