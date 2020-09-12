@@ -14,7 +14,7 @@ tags:
 schemes:
 - "https"
 paths:
-  /url:
+  /api/url:
     get:
       tags:
       - "url"
@@ -59,7 +59,7 @@ paths:
       security:
       - shortener_auth:
         - "write:url"
-  /url/{urlId}:
+  /api/url/{urlId}:
     get:
       tags:
         - "url"
