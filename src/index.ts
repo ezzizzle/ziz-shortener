@@ -91,10 +91,10 @@ const run = async (maxRetries: number) => {
 
   app.get('/', rootHandler);
   app.get('/:urlId', getShortenedUrl);
-  app.post('/url', createUrlHandler);
-  app.get('/url/:urlId', urlStatsHandler);
-  app.get('/api/token', tokenHandler);
-  app.delete('/url/:urlId', deleteUrlHandler);
+  app.post('/api/url', createUrlHandler);
+  app.get('/api/url/:urlId', urlStatsHandler);
+  app.get('/api/api/token', tokenHandler);
+  app.delete('/api/url/:urlId', deleteUrlHandler);
 
   app.listen(port, (err) => {
     if (err) {
