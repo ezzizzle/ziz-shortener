@@ -1,6 +1,6 @@
 {
   "name": "ziz-shortener",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "URL Shortener",
   "scripts": {
     "test": "jest",
