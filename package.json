@@ -46,7 +46,7 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "pg": "^8.3.3",
     "reflect-metadata": "^0.1.13",
     "swagger-ui-express": "^4.1.4",
